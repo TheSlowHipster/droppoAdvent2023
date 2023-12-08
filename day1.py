@@ -14,27 +14,19 @@ DIGIT_STRINGS = [
     "nine"
 ]
 
-inputs = []
 
-"""
-Create a list of inputs stored globally
-"""
-def parseInputs(fname: str):
-    with open(fname,"r") as f:
-        for line in f:
-            inputs.append(line)
-
-"""
-Return the int value of a digit character (assumed to be first in string)
-"""
 def atoi(character: str) -> int:
+    """
+    Return the int value of a digit character (assumed to be first in string)
+    """
     return (ord(character[0]) - 48)
 
-"""
-Iterates through the first and last indices to find single digit integers to
-  generate a two-digit result
-"""
+
 def findValueInt(line: str) -> int:
+    """
+    Iterates through the first and last indices to find single digit integers to
+      generate a two-digit result
+    """
     value = 0
     foundFirst = False
     idx = 0
@@ -62,14 +54,16 @@ def findValueInt(line: str) -> int:
     # Return the found value
     return value
 
-"""
-Iterates through a string starting at idx appending characters until either the
-  digit was found or the substring no longer matches the digit being searched.
-"""
+
 def getDigitForwards(line: str, idx: int, digit: str) -> Tuple[bool, int]:
+    """
+    Iterates through a string starting at idx appending characters until either the
+      digit was found or the substring no longer matches the digit being searched.
+    """
     tmpIdx = idx
     test = line[idx]
-    # Invariant: test is a substring of digit
+    # Invariant: test is a substring of digit and there remain enough characters
+    #  to finish the digit
     while tmpIdx < len(line) - 2 and test in digit:
         tmpIdx+=1
         test += line[tmpIdx]
@@ -79,14 +73,16 @@ def getDigitForwards(line: str, idx: int, digit: str) -> Tuple[bool, int]:
     else:
         return False, 0
 
-"""
-Iterates through a string starting at idx prepending characters until either the
-  digit was found or the substring no longer matches the digit searched.
-"""
+
 def getDigitBackwards(line: str, idx: int, digit: str) -> Tuple[bool, int]:
+    """
+    Iterates through a string starting at idx prepending characters until either the
+      digit was found or the substring no longer matches the digit searched.
+    """
     tmpIdx = idx
     test = line[idx]
-    # Invariant: test is a substring of digit
+    # Invariant: test is a substring of digit and there remain enough characters
+    #  to finish the digit
     while tmpIdx >= 0 and test in digit:
         tmpIdx -= 1
         test = line[tmpIdx] + test
@@ -97,14 +93,14 @@ def getDigitBackwards(line: str, idx: int, digit: str) -> Tuple[bool, int]:
         return False, 0
 
 
-"""
-Iterates through the first and last indices to find single digit integers or
-  their word representations to generate a two-digit result
-"""
 def findValueStr(line: str) -> int:
+    """
+    Iterates through the first and last indices to find single digit integers or
+      their word representations to generate a two-digit result
+    """
     value: int = 0
     idx: int = 0
-    foundFirst: bool = False
+    foundFirst = False
     # Invariant: First integer hasn't been found and more line remains
     while not foundFirst and idx < len(line) - 1:
         # If it's a digit we're done
@@ -115,13 +111,13 @@ def findValueStr(line: str) -> int:
         else:
             for digit in DIGIT_STRINGS:
                 if line[idx] in digit and not foundFirst:
-                    foundFirst, tmpVal: int = getDigitForwards(line, idx, digit)
+                    foundFirst, tmpVal = getDigitForwards(line, idx, digit)
                     if foundFirst:
                         value += 10 * tmpVal
         idx += 1
 
     idx = len(line) - 1
-    foundLast: bool = False
+    foundLast = False
     # Invariant: Last integer hasn't been found and more line remains
     while not foundLast and idx >= 0:
         # If it's a digit we're done
@@ -132,32 +128,11 @@ def findValueStr(line: str) -> int:
         else:
             for digit in DIGIT_STRINGS:
                 if line[idx] in digit and not foundLast:
-                    foundLast, tmpVal: int = getDigitBackwards(line, idx, digit)
+                    foundLast, tmpVal = getDigitBackwards(line, idx, digit)
                     if foundLast:
                         value += tmpVal
         idx -= 1
-    print(f"Value found: {value}\n")
     return value
-
-"""
-Finds the sum of all two-digit integers found by the rules of the A part of the
-  puzzle
-"""
-def sumValuesInt() -> int:
-    sum = 0
-    for line in inputs:
-        sum += findValueInt(line)
-    return sum
-
-"""
-Finds the sum of all two-digit integers found by the rules of the B part of the
-  puzzle
-"""
-def sumValuesStr() -> int:
-    sum = 0
-    for line in inputs:
-        sum += findValueStr(line)
-    return sum
 
 """
 Main functionality
@@ -167,6 +142,11 @@ if __name__ == "__main__":
         fname = "smallTest1.txt"
     else:
         fname = sys.argv[1]
-    parseInputs(fname)
-    print(sumValuesInt())
-    print(sumValuesStr())
+    valSum: int = 0
+    strSum: int = 0
+    with open(fname, "r") as f:
+        for line in f:
+            valSum += findValueInt(line)
+            strSum += findValueStr(line)
+    print(valSum)
+    print(strSum)
